@@ -54,98 +54,17 @@ import jquery_rc
 
 
 class WebView(object):
-    def viewSource(self):
-        accessManager = self.view.page().networkAccessManager()
-        request = QNetworkRequest(self.view.url())
-        reply = accessManager.get(request)
-        reply.finished.connect(self.main_window.slotSourceDownloaded)
-
-    def slotSourceDownloaded(self):
-        reply = self.main_window.sender()
-        self.textEdit = QTextEdit()
-        self.textEdit.setAttribute(Qt.WA_DeleteOnClose)
-        self.textEdit.show()
-        self.textEdit.setPlainText(QTextStream(reply).readAll())
-        self.textEdit.resize(600, 400)
-        reply.deleteLater()
-
     def __init__(self, main_window, q_url):
-        self.main_window = main_window
 
         self.view = QWebView(main_window)
         self.view.load(q_url)
-        self.view.loadFinished.connect(self.adjustLocation)
-        self.view.titleChanged.connect(self.adjustTitle)
-        self.view.loadProgress.connect(self.setProgress)
-        self.view.loadFinished.connect(self.finishLoading)
-
-        self.locationEdit = QLineEdit(main_window)
-        self.locationEdit.setSizePolicy(QSizePolicy.Expanding,
-                                   self.locationEdit.sizePolicy().verticalPolicy())
-        self.locationEdit.returnPressed.connect(self.changeLocation)
-
-        toolBar = self.main_window.addToolBar("Navigation")
-        toolBar.addAction(self.view.pageAction(QWebPage.Back))
-        toolBar.addAction(self.view.pageAction(QWebPage.Forward))
-        toolBar.addAction(self.view.pageAction(QWebPage.Reload))
-        toolBar.addAction(self.view.pageAction(QWebPage.Stop))
-        toolBar.addWidget(self.locationEdit)
-
-        # viewMenu = main_window.menuBar().addMenu("&View")
-        # viewSourceAction = QAction("Page Source", self)
-        # viewSourceAction.triggered.connect(self.viewSource)
-        # viewMenu.addAction(viewSourceAction)
-
-        # effectMenu = self.menuBar().addMenu("&Effect")
-        # effectMenu.addAction("Highlight all links", self.highlightAllLinks)
-        #
-        # self.rotateAction = QAction(
-        #     self.style().standardIcon(QStyle.SP_FileDialogDetailedView),
-        #     "Turn images upside down", self, checkable=True,
-        #     toggled=self.rotateImages)
-        # effectMenu.addAction(self.rotateAction)
-
-        # toolsMenu = self.menuBar().addMenu("&Tools")
-        # toolsMenu.addAction("Remove GIF images", self.removeGifImages)
-        # toolsMenu.addAction("Remove all inline frames",
-        #                     self.removeInlineFrames)
-        # toolsMenu.addAction("Remove all object elements",
-        #                     self.removeObjectElements)
-        # toolsMenu.addAction("Remove all embedded elements",
-        #                     self.removeEmbeddedElements)
-        # return self.view
-        # Tab
-        # tabwidget = QtWidgets.QTabWidget(self)
-        # self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
-        # tabwidget.addTab(self.view, 'myself')
-        # End Tab
+        self.view.loadFinished.connect(main_window.adjustLocation)
+        self.view.titleChanged.connect(main_window.adjustTitle)
+        self.view.loadProgress.connect(main_window.setProgress)
+        self.view.loadFinished.connect(main_window.finishLoading)
 
     def get_web_view(self):
         return self.view
-
-    def adjustLocation(self):
-        self.locationEdit.setText(self.view.url().toString())
-
-    def changeLocation(self):
-        url = QUrl.fromUserInput(self.locationEdit.text())
-        self.view.load(url)
-        self.view.setFocus()
-
-    def adjustTitle(self):
-        if 0 < self.progress < 100:
-            self.main_window.setWindowTitle("%s (%s%%)" % (self.view.title(), self.progress))
-        else:
-            self.main_window.setWindowTitle(self.view.title())
-
-    def setProgress(self, p):
-        self.progress = p
-        self.adjustTitle()
-
-    def finishLoading(self):
-        self.progress = 100
-        self.adjustTitle()
-        self.view.page().mainFrame().evaluateJavaScript(self.jQuery)
-        # self.rotateImages(self.rotateAction.isChecked())
 
 
 class MainWindow(QMainWindow):
@@ -154,7 +73,7 @@ class MainWindow(QMainWindow):
     #     request = QNetworkRequest(self.view.url())
     #     reply = accessManager.get(request)
     #     reply.finished.connect(self.slotSourceDownloaded)
-
+    #
     # def slotSourceDownloaded(self):
     #     reply = self.sender()
     #     self.textEdit = QTextEdit()
@@ -163,15 +82,13 @@ class MainWindow(QMainWindow):
     #     self.textEdit.setPlainText(QTextStream(reply).readAll())
     #     self.textEdit.resize(600, 400)
     #     reply.deleteLater()
+    def adjustLocation(self):
+        self.locationEdit.setText(self.view.url().toString())
 
-
-    # def adjustLocation(self):
-    #     self.locationEdit.setText(self.view.url().toString())
-    #
-    # def changeLocation(self):
-    #     url = QUrl.fromUserInput(self.locationEdit.text())
-    #     self.view.load(url)
-    #     self.view.setFocus()
+    def changeLocation(self):
+        url = QUrl.fromUserInput(self.locationEdit.text())
+        self.view.load(url)
+        self.view.setFocus()
 
     def __init__(self, *urls):
         super(MainWindow, self).__init__()
@@ -195,12 +112,11 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, wroshan_dock)
 
         web_views = []
-        import ipdb
-        ipdb.set_trace()
         for url in urls:
             web_view = WebView(self, url)
             web_views.append(web_view.get_web_view())
 
+        self.view = web_views[1]
         #
         # # End  Add tabbed dock
 
@@ -211,19 +127,19 @@ class MainWindow(QMainWindow):
         # self.view.loadProgress.connect(self.setProgress)
         # self.view.loadFinished.connect(self.finishLoading)
         #
-        # self.locationEdit = QLineEdit(self)
-        # self.locationEdit.setSizePolicy(QSizePolicy.Expanding,
-        #         self.locationEdit.sizePolicy().verticalPolicy())
-        # self.locationEdit.returnPressed.connect(self.changeLocation)
-        #
-        #
-        # toolBar = self.addToolBar("Navigation")
-        # toolBar.addAction(self.view.pageAction(QWebPage.Back))
-        # toolBar.addAction(self.view.pageAction(QWebPage.Forward))
-        # toolBar.addAction(self.view.pageAction(QWebPage.Reload))
-        # toolBar.addAction(self.view.pageAction(QWebPage.Stop))
-        # toolBar.addWidget(self.locationEdit)
-        #
+        self.locationEdit = QLineEdit(self)
+        self.locationEdit.setSizePolicy(QSizePolicy.Expanding,
+                self.locationEdit.sizePolicy().verticalPolicy())
+        self.locationEdit.returnPressed.connect(self.changeLocation)
+
+
+        toolBar = self.addToolBar("Navigation")
+        toolBar.addAction(self.view.pageAction(QWebPage.Back))
+        toolBar.addAction(self.view.pageAction(QWebPage.Forward))
+        toolBar.addAction(self.view.pageAction(QWebPage.Reload))
+        toolBar.addAction(self.view.pageAction(QWebPage.Stop))
+        toolBar.addWidget(self.locationEdit)
+
         # viewMenu = self.menuBar().addMenu("&View")
         # viewSourceAction = QAction("Page Source", self)
         # viewSourceAction.triggered.connect(self.viewSource)
@@ -254,24 +170,24 @@ class MainWindow(QMainWindow):
         # # End Tab
         #
         #
-        self.setCentralWidget(web_views[1])
+        self.setCentralWidget(self.view)
 
 
-    # def adjustTitle(self):
-    #     if 0 < self.progress < 100:
-    #         self.setWindowTitle("%s (%s%%)" % (self.view.title(), self.progress))
-    #     else:
-    #         self.setWindowTitle(self.view.title())
-    #
-    # def setProgress(self, p):
-    #     self.progress = p
-    #     self.adjustTitle()
-    #
-    # def finishLoading(self):
-    #     self.progress = 100
-    #     self.adjustTitle()
-    #     self.view.page().mainFrame().evaluateJavaScript(self.jQuery)
-    #     self.rotateImages(self.rotateAction.isChecked())
+    def adjustTitle(self):
+        if 0 < self.progress < 100:
+            self.setWindowTitle("%s (%s%%)" % (self.view.title(), self.progress))
+        else:
+            self.setWindowTitle(self.view.title())
+
+    def setProgress(self, p):
+        self.progress = p
+        self.adjustTitle()
+
+    def finishLoading(self):
+        self.progress = 100
+        self.adjustTitle()
+        self.view.page().mainFrame().evaluateJavaScript(self.jQuery)
+        # self.rotateImages(self.rotateAction.isChecked())
 
     # def highlightAllLinks(self):
     #     code = """$('a').each(
