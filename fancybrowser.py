@@ -106,16 +106,20 @@ class MainWindow(QMainWindow):
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
         # # Add tabbed dock
-        wrufesh_dock = QtWidgets.QDockWidget('Wrufesh')
-        wroshan_dock = QtWidgets.QDockWidget('Wroshan')
-        self.addDockWidget(Qt.TopDockWidgetArea, wrufesh_dock)
-        self.addDockWidget(Qt.TopDockWidgetArea, wroshan_dock)
+        # wrufesh_dock = QtWidgets.QDockWidget('Wrufesh')
+        # wroshan_dock = QtWidgets.QDockWidget('Wroshan')
+        # self.addDockWidget(Qt.TopDockWidgetArea, wrufesh_dock)
+        # self.addDockWidget(Qt.TopDockWidgetArea, wroshan_dock)
 
         web_views = []
+        tabwidget = QtWidgets.QTabWidget(self)
+        self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
         for url in urls:
             web_view = WebView(self, url)
             web_views.append(web_view.get_web_view())
+            tabwidget.addTab(web_view.get_web_view(), 'myself')
 
+        # TODO on click change self.view
         self.view = web_views[1]
         #
         # # End  Add tabbed dock
@@ -163,14 +167,14 @@ class MainWindow(QMainWindow):
         # toolsMenu.addAction("Remove all embedded elements",
         #         self.removeEmbeddedElements)
         #
-        # # Tab
-        # # tabwidget = QtWidgets.QTabWidget(self)
-        # # self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
-        # # tabwidget.addTab(self.view, 'myself')
-        # # End Tab
-        #
-        #
-        self.setCentralWidget(self.view)
+        # Tab
+        # tabwidget = QtWidgets.QTabWidget(self)
+        # self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
+        # tabwidget.addTab(self.view, 'myself')
+        # End Tab
+
+
+        self.setCentralWidget(tabwidget)
 
 
     def adjustTitle(self):
