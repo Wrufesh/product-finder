@@ -90,6 +90,9 @@ class MainWindow(QMainWindow):
         self.view.load(url)
         self.view.setFocus()
 
+    def change_self_web_view(self, index):
+        self.view = self.web_views[index]
+
     def __init__(self, *urls):
         super(MainWindow, self).__init__()
 
@@ -111,16 +114,17 @@ class MainWindow(QMainWindow):
         # self.addDockWidget(Qt.TopDockWidgetArea, wrufesh_dock)
         # self.addDockWidget(Qt.TopDockWidgetArea, wroshan_dock)
 
-        web_views = []
+        self.web_views = []
         tabwidget = QtWidgets.QTabWidget(self)
+        tabwidget.tabBarClicked.connect(self.change_self_web_view)
         self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
         for url in urls:
             web_view = WebView(self, url)
-            web_views.append(web_view.get_web_view())
+            self.web_views.append(web_view.get_web_view())
             tabwidget.addTab(web_view.get_web_view(), 'myself')
 
         # TODO on click change self.view
-        self.view = web_views[1]
+        self.view = self.web_views[0]
         #
         # # End  Add tabbed dock
 
