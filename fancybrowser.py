@@ -92,6 +92,16 @@ class MainWindow(QMainWindow):
 
     def change_self_web_view(self, index):
         self.view = self.web_views[index]
+        self.adjustLocation()
+        self.adjustTitle()
+        # self.setProgress()
+        # self.finishLoading()
+        # self.view.loadFinished.connect(self.adjustLocation)
+        # self.view.titleChanged.connect(self.adjustTitle)
+        # self.view.loadProgress.connect(self.setProgress)
+        # self.view.loadFinished.connect(self.finishLoading)
+        # FIXME when tab clicked Title and url should be seen
+        # FIXME may be loading progress not persistent while switching different browser
 
     def __init__(self, *urls):
         super(MainWindow, self).__init__()
@@ -123,7 +133,6 @@ class MainWindow(QMainWindow):
             self.web_views.append(web_view.get_web_view())
             tabwidget.addTab(web_view.get_web_view(), 'myself')
 
-        # TODO on click change self.view
         self.view = self.web_views[0]
         #
         # # End  Add tabbed dock
@@ -139,6 +148,11 @@ class MainWindow(QMainWindow):
         self.locationEdit.setSizePolicy(QSizePolicy.Expanding,
                 self.locationEdit.sizePolicy().verticalPolicy())
         self.locationEdit.returnPressed.connect(self.changeLocation)
+
+        self.find_product = QLineEdit(self)
+        self.find_product.setSizePolicy(QSizePolicy.Expanding,
+                                        self.locationEdit.sizePolicy().verticalPolicy())
+        self.find_product.returnPressed.connect(self.findProduct)
 
 
         toolBar = self.addToolBar("Navigation")
@@ -180,6 +194,9 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(tabwidget)
 
+
+    def findProduct(self):
+        print('Finding Product')
 
     def adjustTitle(self):
         if 0 < self.progress < 100:
@@ -253,7 +270,7 @@ if __name__ == '__main__':
     # else:
     urls = [
         QUrl('http://www.google.com/ncr'),
-        QUrl('http://facebook.com'),
+        QUrl('http://www.facebook.com'),
         QUrl('http://twitter.com')
     ]
 
