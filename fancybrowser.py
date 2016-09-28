@@ -319,6 +319,13 @@ class MainWindow(QMainWindow):
     #     code = "$('embed').remove()"
     #     self.view.page().mainFrame().evaluateJavaScript(code)
 
+    def save_cookie_jar(self):
+        available_cookies = self.cookie_jar.allCookies()
+        for cookie in available_cookies:
+            print(cookie.toRawForm(1))
+
+    def closeEvent(self, event):
+        self.save_cookie_jar()
 
 if __name__ == '__main__':
 
