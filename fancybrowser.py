@@ -41,6 +41,7 @@
 ##
 ###########################################################################
 from PyQt5 import QtWidgets
+from PyQt5 import QtNetwork
 
 from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
@@ -54,15 +55,7 @@ import jquery_rc
 
 
 class IncompleteSiteDetailError(Exception):
-    """Exception raised for errors in the input.
-
-    Attributes:
-        expression -- input expression in which the error occurred
-        message -- explanation of the error
-    """
-
     def __init__(self, message):
-        # self.expression = expression
         self.message = message
 
 class SiteDetail(object):
@@ -84,6 +77,9 @@ class WebView(object):
         self.index = index
         self.site_details = site_details
         self.view = QWebView(main_window)
+
+        self.view.page().setNetworkAccessManager(main_window.network_manager)
+
         self.view.load(QUrl(site_details.init_url))
         if main_window.default_tab == index:
             self.view.loadFinished.connect(main_window.adjustLocation)
@@ -92,6 +88,10 @@ class WebView(object):
             self.view.loadFinished.connect(main_window.finishLoading)
             self.view.linkClicked.connect(main_window.loadClickedLink)
             self.view_signal_connected_to_slot = True
+
+
+
+
 
     def get_web_view(self):
         return self.view
@@ -162,6 +162,12 @@ class MainWindow(QMainWindow):
             fd.close()
         else:
             self.jQuery = ''
+
+        # Do here a cookie thing
+        self.cookie_jar = QtNetwork.QNetworkCookieJar()
+        self.network_manager = QtNetwork.QNetworkAccessManager()
+        self.network_manager.setCookieJar(self.cookie_jar)
+        # End Do here a cookie thing
 
         QNetworkProxyFactory.setUseSystemConfiguration(True)
 
