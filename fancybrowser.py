@@ -54,14 +54,19 @@ import jquery_rc
 
 
 class WebView(object):
-    def __init__(self, main_window, q_url):
-
+    def __init__(self, main_window, index, q_url):
+        self.view_signal_connected_to_slot = False
         self.view = QWebView(main_window)
         self.view.load(q_url)
-        self.view.loadFinished.connect(main_window.adjustLocation)
-        self.view.titleChanged.connect(main_window.adjustTitle)
-        self.view.loadProgress.connect(main_window.setProgress)
-        self.view.loadFinished.connect(main_window.finishLoading)
+        if main_window.default_tab == index:
+            # import ipdb
+            # ipdb.set_trace()
+            self.view.loadFinished.connect(main_window.adjustLocation)
+            self.view.titleChanged.connect(main_window.adjustTitle)
+            self.view.loadProgress.connect(main_window.setProgress)
+            self.view.loadFinished.connect(main_window.finishLoading)
+            self.view.linkClicked.connect(main_window.loadClickedLink)
+            self.view_signal_connected_to_slot = True
 
     def get_web_view(self):
         return self.view
@@ -91,22 +96,35 @@ class MainWindow(QMainWindow):
         self.view.setFocus()
 
     def change_self_web_view(self, index):
-        self.view = self.web_views[index]
+        self.view = self.web_views[index].get_web_view()
+
+        if self.web_views[index].view_signal_connected_to_slot:
+            self.view.loadFinished.disconnect(self.adjustLocation)
+            self.view.titleChanged.disconnect(self.adjustTitle)
+            self.view.loadProgress.disconnect(self.setProgress)
+            self.view.loadFinished.disconnect(self.finishLoading)
+        self.view.loadFinished.connect(self.adjustLocation)
+        self.view.titleChanged.connect(self.adjustTitle)
+        self.view.loadProgress.connect(self.setProgress)
+        self.view.loadFinished.connect(self.finishLoading)
         self.adjustLocation()
         self.adjustTitle()
-        # self.setProgress()
-        # self.finishLoading()
-        # self.view.loadFinished.connect(self.adjustLocation)
-        # self.view.titleChanged.connect(self.adjustTitle)
-        # self.view.loadProgress.connect(self.setProgress)
-        # self.view.loadFinished.connect(self.finishLoading)
-        # FIXME when tab clicked Title and url should be seen
-        # FIXME may be loading progress not persistent while switching different browser
+
+
+        # TODO add title to tab loading percentage
+        # TODO add product finder search
+        # TODO add cookie support(cookie will be prebuilt)
+        # FIXME cannot click link on twitter
+
+    def loadClickedLink(self, q_url):
+        self.view.load(q_url)
+        self.view.setFocus()
 
     def __init__(self, *urls):
         super(MainWindow, self).__init__()
 
         self.progress = 0
+        self.default_tab = 0
 
         fd = QFile(":/jquery.min.js")
 
@@ -128,12 +146,12 @@ class MainWindow(QMainWindow):
         tabwidget = QtWidgets.QTabWidget(self)
         tabwidget.tabBarClicked.connect(self.change_self_web_view)
         self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
-        for url in urls:
-            web_view = WebView(self, url)
-            self.web_views.append(web_view.get_web_view())
+        for i, url in enumerate(urls):
+            web_view = WebView(self, i, url)
+            self.web_views.append(web_view)
             tabwidget.addTab(web_view.get_web_view(), 'myself')
 
-        self.view = self.web_views[0]
+        self.view = self.web_views[0].get_web_view()
         #
         # # End  Add tabbed dock
 
@@ -269,9 +287,9 @@ if __name__ == '__main__':
     #     url = QUrl(sys.argv[1])
     # else:
     urls = [
-        QUrl('http://www.google.com/ncr'),
-        QUrl('http://www.facebook.com'),
-        QUrl('http://twitter.com')
+        QUrl('https://www.dandh.com/'),
+        QUrl('http://buy.wynit.com/ce/'),
+        QUrl('https://ec.synnex.com/')
     ]
 
     browser = MainWindow(*urls)
