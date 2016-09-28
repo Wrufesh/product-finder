@@ -53,15 +53,39 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebView
 import jquery_rc
 
 
+class IncompleteSiteDetailError(Exception):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        # self.expression = expression
+        self.message = message
+
+class SiteDetail(object):
+    def __init__(self, **kwargs):
+        try:
+            self.init_url = kwargs['init_url']
+            self.login_name = kwargs['login_name']
+            self.login_name_dom_path = kwargs['login_name_dom_path']
+            self.login_password = kwargs['login_password']
+            self.login_password_dom_path = kwargs['login_password_dom_path']
+            self.login_button_dom_path = kwargs['login_button_dom_path']
+        except KeyError as e:
+            raise IncompleteSiteDetailError('{} not found in site detail kwargs'.format(e))
+
+
 class WebView(object):
-    def __init__(self, main_window, index, q_url):
+    def __init__(self, main_window, index, site_details):
         self.view_signal_connected_to_slot = False
         self.index = index
+        self.site_details = site_details
         self.view = QWebView(main_window)
-        self.view.load(q_url)
+        self.view.load(QUrl(site_details.init_url))
         if main_window.default_tab == index:
-            # import ipdb
-            # ipdb.set_trace()
             self.view.loadFinished.connect(main_window.adjustLocation)
             self.view.titleChanged.connect(main_window.adjustTitle)
             self.view.loadProgress.connect(main_window.setProgress)
@@ -97,6 +121,7 @@ class MainWindow(QMainWindow):
         self.view.setFocus()
 
     def change_self_web_view(self, index):
+        self.web_view = self.web_views[index]
         self.view = self.web_views[index].get_web_view()
 
         if self.web_views[index].view_signal_connected_to_slot:
@@ -124,7 +149,7 @@ class MainWindow(QMainWindow):
         self.view.load(q_url)
         self.view.setFocus()
 
-    def __init__(self, *urls):
+    def __init__(self, *sites_details):
         super(MainWindow, self).__init__()
 
         self.progress = 0
@@ -152,11 +177,11 @@ class MainWindow(QMainWindow):
 
         self.tabwidget.tabBarClicked.connect(self.change_self_web_view)
         self.setTabPosition(Qt.TopDockWidgetArea, self.tabwidget.East)
-        for i, url in enumerate(urls):
-            web_view = WebView(self, i, url)
+        for i, site_deatils in enumerate(sites_deatils):
+            web_view = WebView(self, i, site_deatils)
             self.web_views.append(web_view)
             self.tabwidget.addTab(web_view.get_web_view(), 'New Tab')
-
+        self.web_view = self.web_views[0]
         self.view = self.web_views[0].get_web_view()
         #
         # # End  Add tabbed dock
@@ -298,13 +323,39 @@ if __name__ == '__main__':
     # if len(sys.argv) > 1:
     #     url = QUrl(sys.argv[1])
     # else:
-    urls = [
-        QUrl('https://www.dandh.com/'),
-        QUrl('http://buy.wynit.com/ce/'),
-        QUrl('https://ec.synnex.com/')
+    sites_deatils = [
+        SiteDetail(**{
+            'init_url': 'https://www.dandh.com/',
+            'login_name':'wrufesh',
+            'login_name_dom_path':'wrufesh',
+            'login_password':'wrufesh',
+            'login_password_dom_path':'password',
+            'login_button_dom_path':'button'
+        }),
+        SiteDetail(**{
+            'init_url': 'http://buy.wynit.com/ce/',
+            'login_name': 'wrufesh',
+            'login_name_dom_path': 'wrufesh',
+            'login_password': 'wrufesh',
+            'login_password_dom_path': 'password',
+            'login_button_dom_path': 'button'
+        }),
+        SiteDetail(**{
+            'init_url': 'https://ec.synnex.com/',
+            'login_name': 'wrufesh',
+            'login_name_dom_path': 'wrufesh',
+            'login_password': 'wrufesh',
+            'login_password_dom_path': 'password',
+            'login_button_dom_path': 'button'
+        })
     ]
+    # urls = [
+    #     QUrl('https://www.dandh.com/'),
+    #     QUrl('http://buy.wynit.com/ce/'),
+    #     QUrl('https://ec.synnex.com/')
+    # ]
 
-    browser = MainWindow(*urls)
+    browser = MainWindow(*sites_deatils)
     browser.show()
 
     sys.exit(app.exec_())
