@@ -56,6 +56,7 @@ import jquery_rc
 class WebView(object):
     def __init__(self, main_window, index, q_url):
         self.view_signal_connected_to_slot = False
+        self.index = index
         self.view = QWebView(main_window)
         self.view.load(q_url)
         if main_window.default_tab == index:
@@ -143,13 +144,15 @@ class MainWindow(QMainWindow):
         # self.addDockWidget(Qt.TopDockWidgetArea, wroshan_dock)
 
         self.web_views = []
-        tabwidget = QtWidgets.QTabWidget(self)
-        tabwidget.tabBarClicked.connect(self.change_self_web_view)
-        self.setTabPosition(Qt.TopDockWidgetArea, tabwidget.East)
+        self.tabwidget = QtWidgets.QTabWidget(self)
+        self.tabwidget.setTabShape(1)
+
+        self.tabwidget.tabBarClicked.connect(self.change_self_web_view)
+        self.setTabPosition(Qt.TopDockWidgetArea, self.tabwidget.East)
         for i, url in enumerate(urls):
             web_view = WebView(self, i, url)
             self.web_views.append(web_view)
-            tabwidget.addTab(web_view.get_web_view(), 'myself')
+            self.tabwidget.addTab(web_view.get_web_view(), 'New Tab')
 
         self.view = self.web_views[0].get_web_view()
         #
@@ -210,7 +213,7 @@ class MainWindow(QMainWindow):
         # End Tab
 
 
-        self.setCentralWidget(tabwidget)
+        self.setCentralWidget(self.tabwidget)
 
 
     def findProduct(self):
@@ -221,6 +224,8 @@ class MainWindow(QMainWindow):
             self.setWindowTitle("%s (%s%%)" % (self.view.title(), self.progress))
         else:
             self.setWindowTitle(self.view.title())
+        for i, web_view in enumerate(self.web_views):
+            self.tabwidget.setTabText(i, web_view.get_web_view().title())
 
     def setProgress(self, p):
         self.progress = p
@@ -230,6 +235,7 @@ class MainWindow(QMainWindow):
         self.progress = 100
         self.adjustTitle()
         self.view.page().mainFrame().evaluateJavaScript(self.jQuery)
+
         # self.rotateImages(self.rotateAction.isChecked())
 
     # def highlightAllLinks(self):
