@@ -112,10 +112,13 @@ class MainWindow(QMainWindow):
         self.adjustTitle()
 
 
-        # TODO add title to tab loading percentage
-        # TODO add product finder search
         # TODO add cookie support(cookie will be prebuilt)
         # FIXME cannot click link on twitter
+
+        # FIXME percentage sill shown when page stop
+        # The above issue can be fixed by making a progess variable in WebView class and show that when clicked
+
+        # FIXME Reload not working I guess
 
     def loadClickedLink(self, q_url):
         self.view.load(q_url)
@@ -172,9 +175,10 @@ class MainWindow(QMainWindow):
 
         self.find_product = QLineEdit(self)
         self.find_product.setSizePolicy(QSizePolicy.Expanding,
-                                        self.locationEdit.sizePolicy().verticalPolicy())
+                                        self.find_product.sizePolicy().verticalPolicy())
         self.find_product.returnPressed.connect(self.findProduct)
 
+        self.product_finder_label_widget = QtWidgets.QLabel('\t\t\t\t{}'.format('Search Product: '), self)
 
         toolBar = self.addToolBar("Navigation")
         toolBar.addAction(self.view.pageAction(QWebPage.Back))
@@ -182,6 +186,8 @@ class MainWindow(QMainWindow):
         toolBar.addAction(self.view.pageAction(QWebPage.Reload))
         toolBar.addAction(self.view.pageAction(QWebPage.Stop))
         toolBar.addWidget(self.locationEdit)
+        toolBar.addWidget(self.product_finder_label_widget)
+        toolBar.addWidget(self.find_product)
 
         # viewMenu = self.menuBar().addMenu("&View")
         # viewSourceAction = QAction("Page Source", self)
