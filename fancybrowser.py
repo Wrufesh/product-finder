@@ -43,13 +43,11 @@
 from PyQt5 import QtWidgets
 from PyQt5 import QtNetwork
 
-from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl
+from PyQt5.QtCore import QFile, QIODevice, Qt, QTextStream, QUrl, QDataStream
 from PyQt5.QtWidgets import (QAction, QApplication, QLineEdit, QMainWindow,
-        QSizePolicy, QStyle, QTextEdit)
+                             QSizePolicy, QStyle, QTextEdit)
 from PyQt5.QtNetwork import QNetworkProxyFactory, QNetworkRequest
 from PyQt5.QtWebKitWidgets import QWebPage, QWebView
-
-
 
 import jquery_rc
 
@@ -57,6 +55,7 @@ import jquery_rc
 class IncompleteSiteDetailError(Exception):
     def __init__(self, message):
         self.message = message
+
 
 class SiteDetail(object):
     def __init__(self, **kwargs):
@@ -88,10 +87,6 @@ class WebView(object):
             self.view.loadFinished.connect(main_window.finishLoading)
             self.view.linkClicked.connect(main_window.loadClickedLink)
             self.view_signal_connected_to_slot = True
-
-
-
-
 
     def get_web_view(self):
         return self.view
@@ -163,6 +158,8 @@ class MainWindow(QMainWindow):
         else:
             self.jQuery = ''
 
+        self.c_fd = QFile(":/cookies")
+
         # Do here a cookie thing
         self.cookie_jar = QtNetwork.QNetworkCookieJar()
         self.network_manager = QtNetwork.QNetworkAccessManager()
@@ -201,7 +198,7 @@ class MainWindow(QMainWindow):
         #
         self.locationEdit = QLineEdit(self)
         self.locationEdit.setSizePolicy(QSizePolicy.Expanding,
-                self.locationEdit.sizePolicy().verticalPolicy())
+                                        self.locationEdit.sizePolicy().verticalPolicy())
         self.locationEdit.returnPressed.connect(self.changeLocation)
 
         self.find_product = QLineEdit(self)
@@ -251,7 +248,6 @@ class MainWindow(QMainWindow):
 
 
         self.setCentralWidget(self.tabwidget)
-
 
     def findProduct(self):
         print('Finding Product')
@@ -322,13 +318,16 @@ class MainWindow(QMainWindow):
     def save_cookie_jar(self):
         available_cookies = self.cookie_jar.allCookies()
         for cookie in available_cookies:
-            print(cookie.toRawForm(1))
+
+            QDataStream(cookie.toRawForm(1), self.c_fd.open(QIODevice.WriteOnly | QIODevice.Text))
+        self.c_fd.close()
+        print(cookie.toRawForm(1))
 
     def closeEvent(self, event):
         self.save_cookie_jar()
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
@@ -339,11 +338,11 @@ if __name__ == '__main__':
     sites_deatils = [
         SiteDetail(**{
             'init_url': 'https://www.dandh.com/',
-            'login_name':'wrufesh',
-            'login_name_dom_path':'wrufesh',
-            'login_password':'wrufesh',
-            'login_password_dom_path':'password',
-            'login_button_dom_path':'button'
+            'login_name': 'wrufesh',
+            'login_name_dom_path': 'wrufesh',
+            'login_password': 'wrufesh',
+            'login_password_dom_path': 'password',
+            'login_button_dom_path': 'button'
         }),
         SiteDetail(**{
             'init_url': 'http://buy.wynit.com/ce/',
