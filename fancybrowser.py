@@ -318,10 +318,9 @@ class MainWindow(QMainWindow):
     def save_cookie_jar(self):
         available_cookies = self.cookie_jar.allCookies()
         for cookie in available_cookies:
-
-            QDataStream(cookie.toRawForm(1), self.c_fd.open(QIODevice.WriteOnly | QIODevice.Text))
+            print(cookie.toRawForm(1))
+            QTextStream(cookie.toRawForm(1), self.c_fd.open(QIODevice.WriteOnly))
         self.c_fd.close()
-        print(cookie.toRawForm(1))
 
     def closeEvent(self, event):
         self.save_cookie_jar()
